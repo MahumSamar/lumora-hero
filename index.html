@@ -34,7 +34,6 @@
     overflow: hidden;
     isolation: isolate;
     background:
-      radial-gradient(60% 55% at 50% 55%, rgba(18, 70, 160, 0.20), transparent 70%),
       var(--bg);
   }
 
@@ -42,52 +41,26 @@
   .stage {
     position: absolute; inset: 0; z-index: 0;
     display: grid; place-items: center;
-    perspective: 1400px;
     pointer-events: none;
   }
-  .orb {
-    position: relative;
-    width: min(98vw, 112vh, 1560px);
-    aspect-ratio: 16 / 9;
-    margin-top: 12vh;
-    transform-style: preserve-3d;
-    will-change: transform;
-    animation: float 9s ease-in-out infinite;
-  }
-  .orb-inner {
-    position: absolute; inset: 0;
-    transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translate3d(var(--tx, 0px), var(--ty, 0px), 0) scale(var(--s, 1));
-    transition: transform 0.9s cubic-bezier(.2,.7,.2,1);
-    will-change: transform;
-  }
-  .orb video, .orb img {
+  #gl {
     position: absolute; inset: 0; width: 100%; height: 100%;
-    object-fit: cover;
-    mix-blend-mode: screen;
-    /* feather the frame edges into the background */
-    -webkit-mask-image: radial-gradient(closest-side, #000 72%, transparent 100%);
-            mask-image: radial-gradient(closest-side, #000 72%, transparent 100%);
-    -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+    display: block;
+    opacity: 0; transition: opacity 1.2s ease;
   }
-  .orb video { transform: scale(1.12); }
-  .orb img { opacity: 1; transition: opacity 0.8s ease; }
-  .orb.playing img { opacity: 0; }
-  .glow {
-    position: absolute; left: 50%; top: 50%;
-    width: 46%; aspect-ratio: 1; translate: -50% -50%;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(40, 170, 255, 0.35), rgba(20, 80, 255, 0.10) 45%, transparent 70%);
-    filter: blur(30px);
-    animation: pulse 5s ease-in-out infinite;
-    z-index: -1;
+  #gl.ready { opacity: 1; }
+  .loader {
+    position: absolute; left: 50%; top: 56%; translate: -50% -50%;
+    width: 120px; aspect-ratio: 1; border-radius: 50%;
+    background: radial-gradient(circle, rgba(60, 190, 255, 0.55), rgba(20, 80, 255, 0.12) 50%, transparent 70%);
+    filter: blur(8px);
+    animation: pulse 1.6s ease-in-out infinite;
+    transition: opacity .6s;
   }
-  @keyframes float {
-    0%, 100% { transform: translate3d(0, 0, 0); }
-    50% { transform: translate3d(0, -14px, 0); }
-  }
+  .loader.hide { opacity: 0; }
   @keyframes pulse {
-    0%, 100% { opacity: 0.75; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.08); }
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.15); }
   }
 
   /* ---------- NAV ---------- */
@@ -147,7 +120,7 @@
   .card {
     position: absolute; z-index: 2;
     right: clamp(16px, 3.4vw, 50px);
-    top: 62%;
+    bottom: clamp(20px, 4vh, 38px);
     width: min(260px, 26vw);
     opacity: 0; animation: fade 1s .5s ease forwards;
   }
@@ -183,8 +156,8 @@
 
   /* ---------- TABLET ---------- */
   @media (max-width: 1024px) {
-    .orb { width: 112vw; margin-top: 4vh; }
-    .card { top: auto; bottom: 120px; }
+    .stage { top: 4vh; }
+    .card { bottom: clamp(20px, 4vh, 38px); }
     .more { margin-right: 0; }
   }
 
@@ -212,7 +185,8 @@
 
     .nav { order: 0; } .top { order: 1; } .stage { order: 2; } .card { order: 3; } .bottom { order: 4; }
     .stage { position: relative; inset: auto; display: flex; justify-content: center; align-items: center; height: 80vw; min-height: 280px; overflow: visible; }
-    .orb { width: 150vw; flex: none; margin-top: 0; }
+    .stage { top: auto; height: 96vw; min-height: 320px; margin: -6vw 0 -4vw;
+      -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent); mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent); }
 
     .card { position: relative; right: auto; top: auto; bottom: auto; width: auto; padding: 0 var(--pad); margin-top: 6px; }
     .card h2 { font-size: 19px; margin-bottom: 10px; }
@@ -228,7 +202,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .orb, .glow, .discover svg { animation: none; }
+    .loader, .discover svg { animation: none; }
     h1 .line > span { animation: none; transform: none; }
     .card { animation: none; opacity: 1; }
   }
@@ -237,15 +211,8 @@
 <body>
 <section class="hero" id="hero">
   <div class="stage" aria-hidden="true">
-    <div class="orb" id="orb">
-      <div class="orb-inner" id="orbInner">
-        <div class="glow"></div>
-        <img id="poster" alt="" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261018_172652_b072a97e-ffec-48cc-9a66-a9587d496e1a.png" />
-        <video id="orbVideo" autoplay muted loop playsinline preload="auto" poster="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261018_172652_b072a97e-ffec-48cc-9a66-a9587d496e1a.png">
-          <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261018_172740_3e5dd450-52f2-4537-940d-450e87ef9aeb.mp4" type="video/mp4" />
-        </video>
-      </div>
-    </div>
+    <div class="loader" id="loader"></div>
+    <canvas id="gl"></canvas>
   </div>
 
   <nav class="nav" id="nav">
@@ -301,44 +268,368 @@
     const open = nav.classList.toggle('open');
     burger.setAttribute('aria-expanded', open);
   });
+</script>
 
-  // Video: fade out poster once frames are flowing
-  const orb = document.getElementById('orb');
-  const video = document.getElementById('orbVideo');
-  video.addEventListener('playing', () => orb.classList.add('playing'));
-  video.play().catch(() => {});
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+  import * as THREE from 'three';
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+  import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+  import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+  import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+  import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+  import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
-  // 3D tilt / parallax interaction (pointer + touch + gyro)
-  const inner = document.getElementById('orbInner');
+  // Higgsfield 3D model — built with multi_image_to_3d from the close-up model sheet (front / 3/4 / top views)
+  const ORB_GLB = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261018_202332_9ca7052f-8d5e-4803-9431-d0eaff627b54.glb';
+
+  const canvas = document.getElementById('gl');
+  const stage = canvas.parentElement;
+  const loader = document.getElementById('loader');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let tx = 0, ty = 0, cx = 0, cy = 0, hover = 0, ch = 0;
+  const mobile = matchMedia('(max-width: 720px)');
 
-  function setTarget(nx, ny) { tx = Math.max(-1, Math.min(1, nx)); ty = Math.max(-1, Math.min(1, ny)); }
-  addEventListener('pointermove', e => {
-    setTarget((e.clientX / innerWidth) * 2 - 1, (e.clientY / innerHeight) * 2 - 1);
-    // proximity "swell" when pointer nears the orb centre
-    const r = orb.getBoundingClientRect();
-    const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
-    hover = Math.max(0, 1 - Math.hypot(dx, dy) / (r.height * 0.6));
-  }, { passive: true });
-  document.addEventListener('pointerleave', () => { setTarget(0, 0); hover = 0; });
-  addEventListener('deviceorientation', e => {
-    if (e.gamma == null) return;
-    setTarget(e.gamma / 30, (e.beta - 45) / 30);
-  }, { passive: true });
+  // ---------- renderer / scene ----------
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+  renderer.setClearColor(0x000000, 0);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.0;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
 
-  inner.style.transition = 'none';
-  (function loop() {
-    if (!reduce) {
-      cx += (tx - cx) * 0.06; cy += (ty - cy) * 0.06; ch += (hover - ch) * 0.05;
-      inner.style.setProperty('--ry', (cx * 12).toFixed(2) + 'deg');
-      inner.style.setProperty('--rx', (-cy * 9).toFixed(2) + 'deg');
-      inner.style.setProperty('--tx', (cx * 26).toFixed(1) + 'px');
-      inner.style.setProperty('--ty', (cy * 18).toFixed(1) + 'px');
-      inner.style.setProperty('--s', (1 + ch * 0.035).toFixed(4));
+  const scene = new THREE.Scene();
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.02).texture;
+
+  const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
+  camera.position.set(0, 0, 10);
+
+  scene.add(new THREE.AmbientLight(0x88aaff, 0.25));
+  const key = new THREE.DirectionalLight(0xffffff, 1.4); key.position.set(3, 4, 5); scene.add(key);
+  const fill = new THREE.DirectionalLight(0x5aa0ff, 1.0); fill.position.set(-4, -1, 3); scene.add(fill);
+  const glowL = new THREE.PointLight(0x47b8ff, 6, 5, 2); scene.add(glowL); // orb light spilling on the rings
+
+  const system = new THREE.Group();     // pointer-tilted
+  scene.add(system);
+  const floatG = new THREE.Group();     // gentle float
+  system.add(floatG);
+
+  // ---------- shared wobble field ----------
+  const NOISE = `
+    vec3 mod289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;}
+    vec4 mod289(vec4 x){return x-floor(x*(1.0/289.0))*289.0;}
+    vec4 permute(vec4 x){return mod289(((x*34.0)+1.0)*x);}
+    vec4 taylorInvSqrt(vec4 r){return 1.79284291400159-0.85373472095314*r;}
+    float snoise(vec3 v){
+      const vec2 C=vec2(1.0/6.0,1.0/3.0); const vec4 D=vec4(0.0,0.5,1.0,2.0);
+      vec3 i=floor(v+dot(v,C.yyy)); vec3 x0=v-i+dot(i,C.xxx);
+      vec3 g=step(x0.yzx,x0.xyz); vec3 l=1.0-g; vec3 i1=min(g.xyz,l.zxy); vec3 i2=max(g.xyz,l.zxy);
+      vec3 x1=x0-i1+C.xxx; vec3 x2=x0-i2+C.yyy; vec3 x3=x0-D.yyy;
+      i=mod289(i);
+      vec4 p=permute(permute(permute(i.z+vec4(0.0,i1.z,i2.z,1.0))+i.y+vec4(0.0,i1.y,i2.y,1.0))+i.x+vec4(0.0,i1.x,i2.x,1.0));
+      float n_=0.142857142857; vec3 ns=n_*D.wyz-D.xzx;
+      vec4 j=p-49.0*floor(p*ns.z*ns.z); vec4 x_=floor(j*ns.z); vec4 y_=floor(j-7.0*x_);
+      vec4 x=x_*ns.x+ns.yyyy; vec4 y=y_*ns.x+ns.yyyy; vec4 h=1.0-abs(x)-abs(y);
+      vec4 b0=vec4(x.xy,y.xy); vec4 b1=vec4(x.zw,y.zw);
+      vec4 s0=floor(b0)*2.0+1.0; vec4 s1=floor(b1)*2.0+1.0; vec4 sh=-step(h,vec4(0.0));
+      vec4 a0=b0.xzyw+s0.xzyw*sh.xxyy; vec4 a1=b1.xzyw+s1.xzyw*sh.zzww;
+      vec3 p0=vec3(a0.xy,h.x); vec3 p1=vec3(a0.zw,h.y); vec3 p2=vec3(a1.xy,h.z); vec3 p3=vec3(a1.zw,h.w);
+      vec4 norm=taylorInvSqrt(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3,p3)));
+      p0*=norm.x; p1*=norm.y; p2*=norm.z; p3*=norm.w;
+      vec4 m=max(0.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.0); m=m*m;
+      return 42.0*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));
     }
-    requestAnimationFrame(loop);
-  })();
+    float wobble(vec3 d){
+      return snoise(d*1.1 + vec3(uTime*0.30, uTime*0.21, -uTime*0.26)) * uAmp
+           + snoise(d*2.3 - vec3(uTime*0.42)) * uAmp * 0.3;
+    }`;
+  // Higgsfield orb render, projected onto the 3D blob from the camera so it reads exactly like the image
+  const ORB_IMG = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261018_200844_5fa95511-57c1-4919-8acf-9136e1a125c5.png';
+  const blank = new THREE.DataTexture(new Uint8Array([8, 40, 160, 255]), 1, 1); blank.needsUpdate = true;
+  const U = {
+    uTime: { value: 0 }, uAmp: { value: 0.07 }, uR: { value: 1 },
+    uTex: { value: blank }, uImgC: { value: new THREE.Vector2(0.495, 0.5) }, uImgR: { value: 0.33 }
+  };
+  new THREE.TextureLoader().setCrossOrigin('anonymous').load(ORB_IMG, (t) => {
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    U.uTex.value = t;
+  });
+
+  // ---------- blob: liquid glass with the swirling galaxy image inside ----------
+  const blobMat = new THREE.ShaderMaterial({
+    uniforms: U,
+    vertexShader: `
+      uniform float uTime; uniform float uAmp; uniform float uR;
+      ${NOISE}
+      varying vec3 vN; varying vec3 vV; varying vec2 vQ;
+      void main(){
+        vec3 d = normalize(position);
+        float L0 = length(position);
+        vec3 p = position + d * wobble(d) * L0;
+        vec3 t1 = normalize(cross(d, vec3(0.0,1.0,0.001)));
+        vec3 t2 = cross(d, t1);
+        vec3 pa = normalize(d + t1*0.02); vec3 pb = normalize(d + t2*0.02);
+        vec3 qa = pa*(L0 + wobble(pa)*L0); vec3 qb = pb*(L0 + wobble(pb)*L0);
+        vec3 n = normalize(cross(qa - p, qb - p));
+        if (dot(n, normal) < 0.0) n = -n;
+        vN = normalize(normalMatrix * mix(normal, n, 0.85));
+        vec4 mv = modelViewMatrix * vec4(p, 1.0);
+        vec4 c = modelViewMatrix * vec4(0.0, 0.0, 0.0, 1.0);
+        float rv = length((modelViewMatrix * vec4(uR, 0.0, 0.0, 0.0)).xyz);
+        vQ = (mv.xy - c.xy) / rv;          // -1..1 across the visible silhouette
+        vV = normalize(-mv.xyz);
+        gl_Position = projectionMatrix * mv;
+      }`,
+    fragmentShader: `
+      uniform float uTime; uniform float uAmp; uniform sampler2D uTex; uniform vec2 uImgC; uniform float uImgR;
+      ${NOISE}
+      varying vec3 vN; varying vec3 vV; varying vec2 vQ;
+      vec2 rot(vec2 v, float a){ float s = sin(a), c = cos(a); return vec2(c*v.x - s*v.y, s*v.x + c*v.y); }
+      void main(){
+        vec3 n = normalize(vN);
+        float facing = clamp(dot(n, vV), 0.0, 1.0);
+        vec2 q = vQ;
+        float r = length(q);
+        // flowing vortex: steady spin + a breathing twist that is stronger near the core
+        float a = uTime * 0.16 + sin(uTime * 0.45) * (1.0 - smoothstep(0.0, 1.0, r)) * 0.55;
+        q = rot(q, a);
+        q += 0.022 * vec2(snoise(vec3(q * 3.0, uTime * 0.35)), snoise(vec3(q * 3.0 + 7.3, uTime * 0.35)));
+        vec2 uv = uImgC + q * 0.94 * uImgR;
+        vec3 col = texture2D(uTex, uv).rgb;
+        // core breathes
+        col += vec3(0.55, 0.85, 1.0) * exp(-r * r * 18.0) * (0.25 + 0.15 * sin(uTime * 1.3));
+        // liquid-glass skin: cyan fresnel rim + sharp highlights
+        float fres = pow(1.0 - facing, 3.0);
+        col += vec3(0.1, 0.55, 1.0) * fres * 0.55;
+        vec3 L1 = normalize(vec3(0.35, 0.7, 0.6));
+        vec3 L2 = normalize(vec3(-0.7, -0.2, 0.6));
+        col += vec3(0.8, 0.95, 1.0) * pow(max(dot(reflect(-L1, n), vV), 0.0), 70.0) * 0.5;
+        col += vec3(0.4, 0.8, 1.0) * pow(max(dot(reflect(-L2, n), vV), 0.0), 30.0) * 0.35;
+        gl_FragColor = vec4(col * 1.1, 1.0);
+      }`
+  });
+
+  const blobHolder = new THREE.Group();
+  floatG.add(blobHolder);
+  // procedural fallback (replaced by the Higgsfield mesh once it loads)
+  const fallback = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 64), blobMat);
+  blobHolder.add(fallback);
+
+  // Keep only the blob part of the Higgsfield mesh (rings are rebuilt as clean geometry below)
+  function extractBlob(geo, cut) {
+    const pos = geo.attributes.position;
+    const idx = geo.index ? geo.index.array : [...Array(pos.count).keys()];
+    const keep = [];
+    const v = new THREE.Vector3();
+    const r = (i) => v.fromBufferAttribute(pos, i).length();
+    for (let i = 0; i < idx.length; i += 3) {
+      if (r(idx[i]) < cut && r(idx[i + 1]) < cut && r(idx[i + 2]) < cut) keep.push(idx[i], idx[i + 1], idx[i + 2]);
+    }
+    const g = geo.clone();
+    g.setIndex(keep);
+    g.computeVertexNormals();
+    return g;
+  }
+
+  new GLTFLoader().load(ORB_GLB, (gltf) => {
+    gltf.scene.updateMatrixWorld(true);
+    const meshes = [];
+    gltf.scene.traverse((o) => { if (o.isMesh) meshes.push(o); });
+    if (!meshes.length) return;
+    // bake transforms, then centre on the combined bounds
+    const geos = meshes.map((m) => { const g = m.geometry.clone(); g.applyMatrix4(m.matrixWorld); return { g, map: m.material.map }; });
+    const box = new THREE.Box3();
+    geos.forEach(({ g }) => { g.computeBoundingBox(); box.union(g.boundingBox); });
+    const c = box.getCenter(new THREE.Vector3());
+    let maxR = 0;
+    geos.forEach(({ g }) => {
+      g.translate(-c.x, -c.y, -c.z);
+      const p = g.attributes.position, v = new THREE.Vector3();
+      for (let i = 0; i < p.count; i++) maxR = Math.max(maxR, v.fromBufferAttribute(p, i).length());
+    });
+    // vertex radius histogram → find the blob surface (dense band) vs the outer rings
+    const bins = new Array(60).fill(0);
+    geos.forEach(({ g }) => {
+      const p = g.attributes.position, v = new THREE.Vector3();
+      for (let i = 0; i < p.count; i++) bins[Math.min(59, Math.floor(v.fromBufferAttribute(p, i).length() / maxR * 60))]++;
+    });
+    let peak = 0; for (let i = 1; i < 52; i++) if (bins[i] > bins[peak]) peak = i;
+    let cutBin = peak; while (cutBin < 59 && bins[cutBin + 1] > bins[peak] * 0.04) cutBin++;
+    const cut = ((cutBin + 1.5) / 60) * maxR;
+
+    const group = new THREE.Group();
+    let blobR = 0;
+    geos.forEach(({ g, map }) => {
+      const bg = extractBlob(g, cut);
+      const p = bg.attributes.position, v = new THREE.Vector3();
+      for (let k = 0; k < bg.index.count; k++) blobR = Math.max(blobR, v.fromBufferAttribute(p, bg.index.getX(k)).length());
+
+      group.add(new THREE.Mesh(bg, blobMat));
+    });
+    if (blobR > 0) {
+      group.scale.setScalar(1 / blobR);
+      U.uR.value = blobR;
+      blobHolder.remove(fallback);
+      blobHolder.add(group);
+    }
+  }, undefined, (err) => console.warn('Higgsfield GLB failed — procedural blob used', err));
+
+  // ---------- rings: a ribbon of thin glass strands + glass beads (torus + array, as in the Blender scene) ----------
+  const ringRoot = new THREE.Group();
+  ringRoot.rotation.set(-1.34, -0.12, -0.56);     // upper-left → lower-right sweep (keeps clear of the right-hand copy)
+  floatG.add(ringRoot);
+
+  // clear glass: transparent body, cyan fresnel edges, crisp specular glints (additive so it glows on black)
+  function glass(edge, body, glint) {
+    return new THREE.ShaderMaterial({
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+      vertexShader: `
+        varying vec3 vN; varying vec3 vV;
+        void main(){
+          vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz);
+          gl_Position = projectionMatrix * mv;
+        }`,
+      fragmentShader: `
+        varying vec3 vN; varying vec3 vV;
+        void main(){
+          vec3 n = normalize(vN); if (!gl_FrontFacing) n = -n;
+          float f = 1.0 - abs(dot(n, vV));
+          vec3 col = vec3(0.08, 0.38, 1.0) * ${body.toFixed(3)}
+                   + vec3(0.22, 0.72, 1.0) * pow(f, 2.4) * ${edge.toFixed(3)};
+          vec3 L1 = normalize(vec3(0.35, 0.7, 0.6));
+          vec3 L2 = normalize(vec3(-0.6, -0.35, 0.7));
+          float s1 = pow(max(dot(reflect(-L1, n), vV), 0.0), 90.0);
+          float s2 = pow(max(dot(reflect(-L2, n), vV), 0.0), 40.0);
+          // caustic: light focused through the glass onto the far side
+          float caus = pow(max(dot(n, -L1), 0.0), 6.0) * 0.35;
+          col += vec3(0.85, 0.97, 1.0) * (s1 * ${glint.toFixed(3)} + s2 * 0.35) + vec3(0.3, 0.8, 1.0) * caus;
+          gl_FragColor = vec4(col, 1.0);
+        }`
+    });
+  }
+  const strandMat = glass(0.85, 0.10, 1.2);
+  const beadMat = glass(1.25, 0.06, 2.6);
+  const beadGeo = new THREE.SphereGeometry(1, 40, 28);
+
+  const rand = (() => { let s = 7; return (a = 0, b = 1) => { s = (s * 16807) % 2147483647; return a + (s / 2147483647) * (b - a); }; })();
+  const strands = [];
+  const N = 16;
+  for (let i = 0; i < N; i++) {
+    const k = i / (N - 1) - 0.5;              // -0.5 … 0.5 across the ribbon
+    const R = 1.6 + k * 0.5 + rand(-0.02, 0.02);
+    const tiltG = new THREE.Group();
+    // each strand tilted a touch differently: bundled in front, splaying apart at the ends
+    tiltG.rotation.x = k * 0.20 + rand(-0.02, 0.02);
+    tiltG.rotation.y = k * 0.07;
+    ringRoot.add(tiltG);
+    const spin = new THREE.Group();
+    tiltG.add(spin);
+    spin.add(new THREE.Mesh(new THREE.TorusGeometry(R, rand(0.0035, 0.0075), 8, 560), strandMat));
+    const beads = 3 + Math.floor(rand() * 5);
+    for (let b = 0; b < beads; b++) {
+      const a = rand(0, Math.PI * 2);
+      const s = rand(0.022, 0.06) * (rand() < 0.18 ? 1.6 : 1);
+      const m = new THREE.Mesh(beadGeo, beadMat);
+      m.position.set(Math.cos(a) * R, Math.sin(a) * R, 0);
+      m.scale.setScalar(s);
+      spin.add(m);
+    }
+    // fine dotted micro-beads along some strands
+    if (i % 3 === 0) {
+      for (let b = 0; b < 26; b++) {
+        const a = (b / 26) * Math.PI * 2 + rand(0, 0.2);
+        const m = new THREE.Mesh(beadGeo, beadMat);
+        m.position.set(Math.cos(a) * R, Math.sin(a) * R, 0);
+        m.scale.setScalar(rand(0.008, 0.016));
+        spin.add(m);
+      }
+    }
+    strands.push({ spin, speed: rand(0.09, 0.22) * (i % 2 ? 1 : 1.2) });
+  }
+
+  // soft blue glow behind the orb
+  const gc = document.createElement('canvas'); gc.width = gc.height = 256;
+  const gx = gc.getContext('2d');
+  const grd = gx.createRadialGradient(128, 128, 0, 128, 128, 128);
+  grd.addColorStop(0, 'rgba(60,150,255,0.55)'); grd.addColorStop(0.4, 'rgba(30,90,255,0.18)'); grd.addColorStop(1, 'rgba(0,0,0,0)');
+  gx.fillStyle = grd; gx.fillRect(0, 0, 256, 256);
+  const glowTex = new THREE.CanvasTexture(gc); glowTex.colorSpace = THREE.SRGBColorSpace;
+  const glowSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+  glowSprite.scale.set(4.2, 4.2, 1);
+  glowSprite.position.z = -1.2;
+  glowSprite.renderOrder = -1;
+  // glow sprite intentionally not added (no halo behind the orb)
+
+  // ---------- bloom ----------
+  const composer = new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene, camera));
+  const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.38, 0.45, 0.88);
+  composer.addPass(bloom);
+  composer.addPass(new OutputPass());
+
+  // ---------- layout ----------
+  function fit() {
+    const w = stage.clientWidth, h = stage.clientHeight;
+    const dpr = Math.min(devicePixelRatio, mobile.matches ? 1.5 : 2);
+    renderer.setPixelRatio(dpr); renderer.setSize(w, h, false);
+    composer.setPixelRatio(dpr); composer.setSize(w, h);
+    camera.aspect = w / h;
+    const vFov = THREE.MathUtils.degToRad(camera.fov);
+    const wantH = mobile.matches ? 2 / 0.7 : 2 / 0.66;            // blob ≈ 66% of hero height
+    const wantW = 4.4 / (mobile.matches ? 1.35 : 0.97);            // ring span vs width
+    const visH = Math.max(wantH, wantW / camera.aspect);
+    camera.position.z = visH / (2 * Math.tan(vFov / 2));
+    system.position.y = mobile.matches ? 0 : -visH * 0.06;
+    camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(fit).observe(stage);
+  fit();
+
+  // ---------- interaction ----------
+  let tx = 0, ty = 0, cx = 0, cy = 0, near = 0, nearS = 0, pulse = 0;
+  const setT = (x, y) => { tx = Math.max(-1, Math.min(1, x)); ty = Math.max(-1, Math.min(1, y)); };
+  addEventListener('pointermove', (e) => {
+    setT((e.clientX / innerWidth) * 2 - 1, (e.clientY / innerHeight) * 2 - 1);
+    const r = stage.getBoundingClientRect();
+    const ox = r.left + r.width / 2, oy = r.top + r.height * (mobile.matches ? 0.5 : 0.56);
+    near = Math.max(0, 1 - Math.hypot(e.clientX - ox, e.clientY - oy) / (r.height * 0.4));
+  }, { passive: true });
+  document.addEventListener('pointerleave', () => { setT(0, 0); near = 0; });
+  addEventListener('pointerdown', () => { pulse = 1; }, { passive: true });
+  addEventListener('deviceorientation', (e) => { if (e.gamma != null) setT(e.gamma / 30, (e.beta - 45) / 30); }, { passive: true });
+
+  // ---------- loop ----------
+  const clock = new THREE.Clock();
+  let first = true, t = 0;
+  renderer.setAnimationLoop(() => {
+    const dt = Math.min(clock.getDelta(), 0.05);
+    const sp = reduce ? 0.15 : 1;
+    t += dt * sp;
+    cx += (tx - cx) * 0.05; cy += (ty - cy) * 0.05;
+    nearS += (near - nearS) * 0.05; pulse *= 0.94;
+
+    U.uTime.value = t * (1 + nearS * 0.7);
+    U.uAmp.value = 0.065 + nearS * 0.06 + pulse * 0.1;
+
+    system.rotation.y = cx * 0.36;
+    system.rotation.x = cy * 0.24;
+    floatG.position.y = Math.sin(t * 0.7) * 0.05;
+    blobHolder.rotation.y = Math.sin(t * 0.25) * 0.25;
+    blobHolder.rotation.z += dt * 0.04 * sp;
+    blobHolder.scale.setScalar(1 + nearS * 0.035 + pulse * 0.05);
+
+    const boost = 1 + nearS * 1.1 + pulse * 2;
+    for (const s of strands) s.spin.rotation.z += dt * s.speed * boost * sp;
+
+    composer.render();
+    if (first) { first = false; canvas.classList.add('ready'); loader.classList.add('hide'); }
+  });
 </script>
 </body>
 </html>
